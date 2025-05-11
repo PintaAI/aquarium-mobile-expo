@@ -55,8 +55,9 @@ export default function RootLayout() {
         <Stack.Screen
           name='index'
           options={{
-            title: 'Starter Base',
+            title: 'Home',
             headerRight: () => <ThemeToggle />,
+          
           }}
         />
       </Stack>
