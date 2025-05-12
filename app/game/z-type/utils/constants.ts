@@ -1,3 +1,12 @@
+export const GAME_CONSTANTS = {
+  // Speed settings for different levels
+  SPEED: {
+    BASE: 0.2,  // Reduced base speed
+    VARIATION: 0.1,  // Smaller variation for more consistent movement
+    LEVEL_MULTIPLIER: 0.2  // How much to increase speed per level
+  }
+};
+
 export const KOREAN_WORDS = [
   {
     word: '안녕하세요',

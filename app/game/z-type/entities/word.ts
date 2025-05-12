@@ -13,15 +13,12 @@ export interface WordEntity {
 export const createWord = (x: number, y: number): WordEntity => {
   const randomWord = KOREAN_WORDS[Math.floor(Math.random() * KOREAN_WORDS.length)];
   
-  // Generate random speed between 0.5 and 2
-  const speed = 0.5 + Math.random() * 1.5;
-
   return {
     id: Math.random().toString(),
     word: randomWord.word,
     meaning: randomWord.meaning,
     position: { x, y },
-    speed,
+    speed: 0, // Speed will be set by MovementSystem
     renderer: WordRenderer
   };
 };
