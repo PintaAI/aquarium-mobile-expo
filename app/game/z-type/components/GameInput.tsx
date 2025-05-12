@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TextInput, View } from 'react-native';
 import { useGameStore } from '../store/gameStore';
+import { GAME_CONSTANTS } from '../utils/constants'; // Import constants for scoring
 
 export function GameInput() {
   const [input, setInput] = useState('');
-  const { words, removeWord, setTargetedWord } = useGameStore();
+  // Destructure incrementScore
+  const { words, removeWord, setTargetedWord, incrementScore } = useGameStore(); 
 
   const checkMatches = (text: string) => {
     const typedWord = text.trim().toLowerCase();
@@ -14,6 +16,8 @@ export function GameInput() {
     for (const [id, entity] of Object.entries(words)) {
       const meaning = entity.meaning.toLowerCase();
       if (meaning === typedWord) {
+        // Increment score when word is matched
+        incrementScore(GAME_CONSTANTS.SCORE.POINTS_PER_WORD); 
         removeWord(id);
         setInput('');
         setTargetedWord('', 0);
