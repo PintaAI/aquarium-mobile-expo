@@ -9,13 +9,12 @@ export function GameInput() {
   const checkMatches = (text: string) => {
     const typedWord = text.trim().toLowerCase();
     
-    console.log('Checking matches for:', typedWord);
-    console.log('Available words:', words);
+ 
     
     for (const [id, entity] of Object.entries(words)) {
-      console.log('Comparing with:', entity.meaning.toLowerCase());
+      
       if (entity.meaning.toLowerCase() === typedWord) {
-        console.log('Match found! Removing word:', id);
+        
         removeWord(id);
         setInput('');
         break;

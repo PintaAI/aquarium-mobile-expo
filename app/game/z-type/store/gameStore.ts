@@ -37,17 +37,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   }),
 
   removeWord: (id: string) => set((state) => {
-    console.log('Store - Before removal:', state.words);
-    console.log('Store - Removing word with id:', id);
+
     const newWords = { ...state.words };
     delete newWords[id];
-    console.log('Store - After removal:', newWords);
     return { words: newWords };
   }),
 
   getWords: () => {
     const words = Object.values(get().words);
-    console.log('Store - Current words:', words);
     return words;
   },
 
