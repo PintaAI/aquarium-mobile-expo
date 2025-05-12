@@ -57,7 +57,13 @@ export default function RootLayout() {
           options={{
             title: 'Home',
             headerRight: () => <ThemeToggle />,
-          
+          }}
+        />
+        <Stack.Screen
+          name='game/z-type'
+          options={{
+            headerShown: false,
+            animation: 'flip',
           }}
         />
       </Stack>
