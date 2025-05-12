@@ -5,25 +5,32 @@ interface GameState {
   isGameOver: boolean;
   gameKey: number;
   words: Record<string, WordEntity>;
+  targetedWordId: string;
+  targetedMatchLength: number;
   setGameOver: (value: boolean) => void;
   resetGame: () => void;
   addWord: (x: number, y: number) => void;
   removeWord: (id: string) => void;
   getWords: () => WordEntity[];
   initializeWords: (width: number, height: number, numWords?: number) => void;
+  setTargetedWord: (id: string, matchLength: number) => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   isGameOver: false,
   gameKey: 0,
   words: {},
+  targetedWordId: '',
+  targetedMatchLength: 0,
 
   setGameOver: (value) => set({ isGameOver: value }),
 
   resetGame: () => set((state) => ({ 
     gameKey: state.gameKey + 1, 
     isGameOver: false,
-    words: {}
+    words: {},
+    targetedWordId: '',
+    targetedMatchLength: 0
   })),
 
   addWord: (x: number, y: number) => set((state) => {
@@ -47,6 +54,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     const words = Object.values(get().words);
     return words;
   },
+
+  setTargetedWord: (id: string, matchLength: number) => set({ 
+    targetedWordId: id, 
+    targetedMatchLength: matchLength 
+  }),
 
   initializeWords: (width: number, height: number, numWords = 5) => set(() => {
     console.log('Store - Initializing words');

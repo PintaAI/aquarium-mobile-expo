@@ -1,30 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextInput, View } from 'react-native';
 import { useGameStore } from '../store/gameStore';
 
 export function GameInput() {
   const [input, setInput] = useState('');
-  const { words, removeWord } = useGameStore();
+  const { words, removeWord, setTargetedWord } = useGameStore();
 
   const checkMatches = (text: string) => {
     const typedWord = text.trim().toLowerCase();
+    let bestMatch = { id: '', matchLength: 0 };
     
- 
-    
+    // Find the best partial match
     for (const [id, entity] of Object.entries(words)) {
-      
-      if (entity.meaning.toLowerCase() === typedWord) {
-        
+      const meaning = entity.meaning.toLowerCase();
+      if (meaning === typedWord) {
         removeWord(id);
         setInput('');
-        break;
+        setTargetedWord('', 0);
+        return;
+      }
+      
+      // Check for partial match
+      let matchLength = 0;
+      while (matchLength < typedWord.length && matchLength < meaning.length 
+             && meaning[matchLength] === typedWord[matchLength]) {
+        matchLength++;
+      }
+      
+      if (matchLength > bestMatch.matchLength) {
+        bestMatch = { id, matchLength };
       }
     }
+    
+    // Update targeted word with best partial match
+    setTargetedWord(bestMatch.id, bestMatch.matchLength);
   };
 
   const handleChangeText = (text: string) => {
     setInput(text);
-    checkMatches(text);
+    if (text.trim() === '') {
+      setTargetedWord('', 0);
+    } else {
+      checkMatches(text);
+    }
   };
 
   return (
