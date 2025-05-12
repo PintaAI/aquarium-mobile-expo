@@ -1,4 +1,4 @@
-import React, { useMemo, useState,} from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
 import { useKeyboardHeight } from './hooks/useKeyboardHeight';
 import KeyboardSystem from './systems/keyboard';
@@ -7,42 +7,33 @@ import { GameEngine } from 'react-native-game-engine';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '~/components/ui/text';
 import { GameInput } from './components/GameInput';
-import { createWord } from './entities/word';
 import { createPlayer } from './entities/player';
+import { useGameStore } from './store/gameStore';
 
 export default function ZTypeGame() {
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [gameKey, setGameKey] = useState(0);
   const { width, height } = useWindowDimensions();
   const keyboardHeight = useKeyboardHeight();
   const adjustedHeight = height - keyboardHeight;
   
-  const entities = useMemo(() => {
-    // Create initial entities object with player
-    const initialEntities: Record<string, any> = {
-      player: {
-        ...createPlayer(width - 20, adjustedHeight - 215),
-        gameHeight: height,
-        keyboardHeight: keyboardHeight
-      }
-    };
+  const { isGameOver, gameKey, words, setGameOver, resetGame, initializeWords } = useGameStore();
 
-    // Add multiple words
-    const numWords = 5; // Start with 3 words
-    for (let i = 0; i < numWords; i++) {
-      // Spread words across the top of the screen with some randomness
-      const x = (width / (numWords + 1)) * (i + 1) + (Math.random() * 50 - 25);
-      const y = Math.random() * -100; // Start slightly above the screen
-      initialEntities[`word${i + 1}`] = createWord(x, y);
-    }
+  useEffect(() => {
+    initializeWords(width, height);
+  }, [width, height, gameKey]);
 
-    return initialEntities;
-  }, [keyboardHeight, width, height, adjustedHeight, gameKey]);
+  const makeEntities = () => ({
+    player: {
+      ...createPlayer(width - 20, adjustedHeight - 215),
+      gameHeight: height,
+      keyboardHeight: keyboardHeight
+    },
+    ...Object.entries(words).reduce((acc, [id, word]) => ({
+      ...acc,
+      [`word${id}`]: word
+    }), {})
+  });
 
-  const resetGame = () => {
-    setGameKey(prev => prev + 1);
-    setIsGameOver(false);
-  };
+  const entities = useMemo(() => makeEntities(), [words, width, height, adjustedHeight, keyboardHeight]);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top','bottom']}>
@@ -53,13 +44,13 @@ export default function ZTypeGame() {
       >
       <View className="flex-1 border-2 border-foreground/20 m-2 rounded-lg">
           <GameEngine
-            key={`${keyboardHeight}-${gameKey}`}
+            key={`${keyboardHeight}-${gameKey}-${Object.keys(words).length}`}
             systems={[KeyboardSystem, MovementSystem]}
             running={!isGameOver}
             entities={entities}
             onEvent={(event: { type: string }) => {
               if (event.type === 'game-over') {
-                setIsGameOver(true);
+                setGameOver(true);
               }
             }}
           >

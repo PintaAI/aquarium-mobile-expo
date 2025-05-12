@@ -1,7 +1,33 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { TextInput, View } from 'react-native';
+import { useGameStore } from '../store/gameStore';
 
 export function GameInput() {
+  const [input, setInput] = useState('');
+  const { words, removeWord } = useGameStore();
+
+  const checkMatches = (text: string) => {
+    const typedWord = text.trim().toLowerCase();
+    
+    console.log('Checking matches for:', typedWord);
+    console.log('Available words:', words);
+    
+    for (const [id, entity] of Object.entries(words)) {
+      console.log('Comparing with:', entity.meaning.toLowerCase());
+      if (entity.meaning.toLowerCase() === typedWord) {
+        console.log('Match found! Removing word:', id);
+        removeWord(id);
+        setInput('');
+        break;
+      }
+    }
+  };
+
+  const handleChangeText = (text: string) => {
+    setInput(text);
+    checkMatches(text);
+  };
+
   return (
     <View className='px-2'>
       <TextInput 
@@ -10,6 +36,8 @@ export function GameInput() {
         placeholderTextColor="#666"
         autoCorrect={false}
         autoCapitalize="none"
+        value={input}
+        onChangeText={handleChangeText}
       />
     </View>
   );
