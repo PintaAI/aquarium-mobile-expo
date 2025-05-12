@@ -8,14 +8,15 @@ export interface WordProps {
   position: { x: number; y: number };
 }
 
-export const WordRenderer: React.FC<WordProps> = ({ word, position }) => {
+export const WordRenderer: React.FC<WordProps> = ({ word, meaning, position }) => {
   return (
     <View style={{
       position: 'absolute',
       left: position.x,
       top: position.y,
     }}>
-      <Text className="text-xl text-foreground">{word}</Text>
+        <Text className="text-xl text-center text-foreground">{word}</Text>
+        <Text className="text-sm text-center text-muted-foreground">{meaning}</Text>
     </View>
   );
 };
