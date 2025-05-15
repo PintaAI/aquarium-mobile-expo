@@ -9,6 +9,7 @@ import { GameInput } from '@/components/game/z-type/components/GameInput';
 import { WordRenderer } from '@/components/game/z-type/components/Word';
 import { PlayerRenderer } from '@/components/game/z-type/components/Player';
 import { HUD } from '@/components/game/z-type/components/HUD';
+import { DevLog } from '@/components/game/z-type/components/DevLog';
 import { GameOver } from '@/components/game/z-type/components/GameOver';
 import { getRandomWords, GAME_CONSTANTS } from '@/components/game/z-type/constants';
 import { MovementSystem } from '@/components/game/z-type/systems';
@@ -36,9 +37,18 @@ const createPlayerEntity = (playerY: number): PlayerEntity => ({
     x: SCREEN.width / 2 - 12, 
     y: playerY 
   },
-  renderer: ({ position }: { position: Position }) => (
-    <PlayerRenderer position={position} />
-  ),
+  renderer: () => {
+    // Use current store value for rendering
+    const currentPlayerY = useGameStore.getState().playerY;
+    return (
+      <PlayerRenderer 
+        position={{ 
+          x: SCREEN.width / 2 - 12, 
+          y: currentPlayerY
+        }} 
+      />
+    );
+  },
 });
 
 const createWordEntity = (word: Word, index: number): WordEntity => {
@@ -83,6 +93,7 @@ const ZTypeScreen = () => {
   const { keyboardHeight, isKeyboardVisible } = useKeyboard();
   const { setPlayerY, setRunning, gameOver, showStartScreen, setLevel, resetGame } = useGameStore();
   const gameEngineRef = useRef<GameEngineType>(null);
+  const [currentEntities, setCurrentEntities] = React.useState<GameEntities | null>(null);
 
   // Handle game start
   const handleStartGame = (level: number) => {
@@ -97,13 +108,13 @@ const ZTypeScreen = () => {
 
   // Update player position when keyboard changes
   useEffect(() => {
-    const newPlayerY = SCREEN.height - keyboardHeight - SCREEN.playerAreaHeight;
+    const newPlayerY = SCREEN.height - keyboardHeight - 80 - SCREEN.playerAreaHeight;
     setPlayerY(newPlayerY);
   }, [keyboardHeight, isKeyboardVisible, setPlayerY]);
 
   // Initialize game entities using current level from store
   const currentLevel = useGameStore(state => state.level);
-  const initialEntities = createGameEntities(getRandomWords(currentLevel, 5));
+  const initialEntities = createGameEntities(getRandomWords(currentLevel, 6));
 
   // Handle game restart
   const handleRestart = () => {
@@ -127,6 +138,7 @@ const ZTypeScreen = () => {
           <GameOver onRestart={handleRestart} />
         ) : (
           <>
+            <DevLog entities={currentEntities || initialEntities} />
             <HUD />
             <GameEngine
               ref={gameEngineRef}
@@ -134,8 +146,14 @@ const ZTypeScreen = () => {
               entities={initialEntities}
               systems={[MovementSystem]}
               running={true}
+              onEvent={(e: { type: string; entities?: GameEntities }) => {
+                if (e.type === "tick" && e.entities) {
+                  setCurrentEntities(e.entities);
+                }
+              }}
             />
             <GameInput />
+            
           </>
         )}
       </KeyboardAvoidingView>

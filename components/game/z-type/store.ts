@@ -9,6 +9,13 @@ interface GameState {
   gameOver: boolean;
   playerY: number; // Dynamic based on keyboard
   showStartScreen: boolean;
+  focusedWordPosition: Position | null;
+  playerRotation: number;
+}
+
+interface Position {
+  x: number;
+  y: number;
 }
 
 interface GameActions {
@@ -22,6 +29,8 @@ interface GameActions {
   setGameOver: (isGameOver: boolean) => void;
   resetGame: () => void; // Placeholder for full reset logic
   setRunning: (isRunning: boolean) => void; // Added for completeness
+  setFocusedWordPosition: (position: Position | null) => void;
+  setPlayerRotation: (rotation: number) => void;
 }
 
 export const useGameStore = create<GameState & GameActions>((set) => ({
@@ -34,6 +43,8 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   gameOver: false,
   playerY: 0, // Will be updated by useKeyboard hook
   showStartScreen: true,
+  focusedWordPosition: null,
+  playerRotation: 0,
 
   // Actions
   setInput: (input) => set({ input }),
@@ -68,11 +79,15 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
       level: state.level,
       // playerY will be set by keyboard hook, so no need to reset here explicitly unless desired
       showStartScreen: true,
+      focusedWordPosition: null,
+      playerRotation: 0,
     })),
   setRunning: (isRunning) => set({ 
     running: isRunning,
     showStartScreen: isRunning ? false : true
   }),
+  setFocusedWordPosition: (position: Position | null) => set({ focusedWordPosition: position }),
+  setPlayerRotation: (rotation: number) => set({ playerRotation: rotation }),
 }));
 
 // Selector for convenience (optional, but good practice)

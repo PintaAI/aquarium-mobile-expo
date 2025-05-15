@@ -4,6 +4,7 @@ import { GameEngine as RNGameEngine } from 'react-native-game-engine';
 
 export interface GameEngine extends RNGameEngine {
   swap?: (entities: GameEntities) => void;
+  entities?: GameEntities;
 }
 
 
@@ -28,6 +29,7 @@ export interface WordEntity {
 export interface PlayerEntity {
   type: 'player';
   position: Position;
+  rotation?: number;
   renderer: ({ position }: { position: Position }) => React.JSX.Element;
 }
 

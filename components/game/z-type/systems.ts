@@ -50,6 +50,8 @@ export const MovementSystem = (entities: GameEntities, { time }: { time: { delta
   
   // First pass: find any word that matches input for focusing
   let foundMatch = false;
+  const { setFocusedWordPosition, setPlayerRotation } = useGameStore.getState();
+
   Object.keys(updatedEntities).forEach((key) => {
     const entity = updatedEntities[key];
     if (entity.type === 'word') {
@@ -58,6 +60,12 @@ export const MovementSystem = (entities: GameEntities, { time }: { time: { delta
       
       if (shouldFocus) {
         foundMatch = true;
+        // Calculate angle between player and word
+        const dx = entity.position.x - playerPos.x;
+        const dy = entity.position.y - playerPos.y;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90; // Subtract 90 degrees to make player point up by default
+        setPlayerRotation(angle);
+        setFocusedWordPosition(entity.position);
       }
       
       // Update focused state
@@ -69,6 +77,12 @@ export const MovementSystem = (entities: GameEntities, { time }: { time: { delta
       }
     }
   });
+
+  // Reset focused position if no word is focused
+  if (!foundMatch) {
+    setFocusedWordPosition(null);
+    setPlayerRotation(0);
+  }
 
   // Second pass: handle movement and matching
   Object.keys(updatedEntities).forEach((key) => {
