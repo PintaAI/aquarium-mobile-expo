@@ -20,7 +20,7 @@ export const GameInput = () => {
   return (
     <View className="w-full px-2 py-2">
       <TextInput
-        className="w-full h-12 px-4 text-center rounded-lg bg-foreground/10 text-primary"
+        className="w-full h-12 px-4 text-center rounded-lg bg-muted text-primary"
         value={input}
         onChangeText={handleInputChange}
         placeholder="Type the meaning..."

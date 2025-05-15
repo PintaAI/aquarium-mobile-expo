@@ -8,6 +8,7 @@ interface GameState {
   streak: number;
   gameOver: boolean;
   playerY: number; // Dynamic based on keyboard
+  showStartScreen: boolean;
 }
 
 interface GameActions {
@@ -32,6 +33,7 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   streak: 0,
   gameOver: false,
   playerY: 0, // Will be updated by useKeyboard hook
+  showStartScreen: true,
 
   // Actions
   setInput: (input) => set({ input }),
@@ -51,18 +53,26 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   resetStreak: () => set({ streak: 0 }),
   setLevel: (level) => set({ level }),
   setPlayerY: (y) => set({ playerY: y }),
-  setGameOver: (isGameOver) => set({ gameOver: isGameOver, running: !isGameOver && false }), // Stop game on game over
+  setGameOver: (isGameOver) => set({ 
+    gameOver: isGameOver, 
+    running: !isGameOver && false
+  }),
   resetGame: () =>
-    set({
+    set((state) => ({
       score: 0,
-      level: 1,
       input: '',
       running: false,
       streak: 0,
       gameOver: false,
+      // Keep the current level
+      level: state.level,
       // playerY will be set by keyboard hook, so no need to reset here explicitly unless desired
-    }),
-  setRunning: (isRunning) => set({ running: isRunning }),
+      showStartScreen: true,
+    })),
+  setRunning: (isRunning) => set({ 
+    running: isRunning,
+    showStartScreen: isRunning ? false : true
+  }),
 }));
 
 // Selector for convenience (optional, but good practice)

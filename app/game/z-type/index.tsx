@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-na
 import { GameEngine } from 'react-native-game-engine';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useKeyboard } from '@/components/game/z-type/hooks/useKeyboard';
+import { StartScreen } from '@/components/game/z-type/components/StartScreen';
 import { useGameStore } from '@/components/game/z-type/store';
 import { GameInput } from '@/components/game/z-type/components/GameInput';
 import { WordRenderer } from '@/components/game/z-type/components/Word';
@@ -80,13 +81,19 @@ const createGameEntities = (words: Word[]): GameEntities => {
 
 const ZTypeScreen = () => {
   const { keyboardHeight, isKeyboardVisible } = useKeyboard();
-  const { setPlayerY, setRunning, gameOver } = useGameStore();
+  const { setPlayerY, setRunning, gameOver, showStartScreen, setLevel, resetGame } = useGameStore();
   const gameEngineRef = useRef<GameEngineType>(null);
 
-  // Initialize game
-  useEffect(() => {
+  // Handle game start
+  const handleStartGame = (level: number) => {
+    resetGame();
+    setLevel(level);
+    if (gameEngineRef.current?.swap) {
+      const entities = createGameEntities(getRandomWords(level, 5));
+      gameEngineRef.current.swap(entities);
+    }
     setRunning(true);
-  }, [setRunning]);
+  };
 
   // Update player position when keyboard changes
   useEffect(() => {
@@ -94,13 +101,15 @@ const ZTypeScreen = () => {
     setPlayerY(newPlayerY);
   }, [keyboardHeight, isKeyboardVisible, setPlayerY]);
 
-  // Initialize game entities
-  const initialEntities = createGameEntities(getRandomWords(1, 5));
+  // Initialize game entities using current level from store
+  const currentLevel = useGameStore(state => state.level);
+  const initialEntities = createGameEntities(getRandomWords(currentLevel, 5));
 
   // Handle game restart
   const handleRestart = () => {
     if (gameEngineRef.current?.swap) {
-      const resetEntities = createGameEntities(getRandomWords(1, 5));
+      const currentLevel = useGameStore.getState().level;
+      const resetEntities = createGameEntities(getRandomWords(currentLevel, 5));
       gameEngineRef.current.swap(resetEntities);
     }
   };
@@ -112,7 +121,9 @@ const ZTypeScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {gameOver ? (
+        {showStartScreen ? (
+          <StartScreen onStartGame={handleStartGame} />
+        ) : gameOver ? (
           <GameOver onRestart={handleRestart} />
         ) : (
           <>

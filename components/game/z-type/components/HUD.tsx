@@ -39,7 +39,7 @@ export const HUD = () => {
           <Progress
             value={wordsTowardsNextLevel * 10} // Value should be 0-100
             className="mt-3 h-2.5" // Adjusted height to match previous basic bar
-            indicatorClassName="bg-primary" // Style for the indicator
+            indicatorClassName="bg-primary/20" // Style for the indicator
           />
         </View>
       </View>
