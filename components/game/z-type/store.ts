@@ -11,6 +11,7 @@ interface GameState {
   showStartScreen: boolean;
   focusedWordPosition: Position | null;
   playerRotation: number;
+  isShooting: boolean; // Track shooting state
 }
 
 interface Position {
@@ -31,6 +32,7 @@ interface GameActions {
   setRunning: (isRunning: boolean) => void; // Added for completeness
   setFocusedWordPosition: (position: Position | null) => void;
   setPlayerRotation: (rotation: number) => void;
+  triggerShot: () => void; // Trigger shooting effect
 }
 
 export const useGameStore = create<GameState & GameActions>((set) => ({
@@ -45,6 +47,7 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   showStartScreen: true,
   focusedWordPosition: null,
   playerRotation: 0,
+  isShooting: false,
 
   // Actions
   setInput: (input) => set({ input }),
@@ -88,6 +91,10 @@ export const useGameStore = create<GameState & GameActions>((set) => ({
   }),
   setFocusedWordPosition: (position: Position | null) => set({ focusedWordPosition: position }),
   setPlayerRotation: (rotation: number) => set({ playerRotation: rotation }),
+  triggerShot: () => {
+    set({ isShooting: true });
+    setTimeout(() => set({ isShooting: false }), 100); // Reset after 100ms
+  },
 }));
 
 // Selector for convenience (optional, but good practice)

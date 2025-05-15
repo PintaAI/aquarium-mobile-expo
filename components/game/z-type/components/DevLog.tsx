@@ -9,7 +9,7 @@ interface DevLogProps {
 
 export const DevLog: React.FC<DevLogProps> = ({ entities }) => {
   const rotation = useGameStore((state) => state.playerRotation);
-  const focusedWordPosition = useGameStore((state) => state.focusedWordPosition);
+  
   const input = useGameStore((state) => state.input);
 
   // Calculate word stats from current entities
@@ -27,25 +27,11 @@ export const DevLog: React.FC<DevLogProps> = ({ entities }) => {
   }, [entities]);
 
   return (
-    <View 
-      style={{
-        position: 'absolute',
-        top: 50,
-        left: 10,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: 10,
-        borderRadius: 5,
-        zIndex: 1000,
-      }}
-    >
-      <Text style={{ color: '#fff', fontSize: 12 }}>
+    <View className="absolute top-[70px] left-[10px] bg-primary/10 p-1.5 rounded z-[1000]">
+      <Text className="text-muted-foreground text-[10px]">
         Rotation: {rotation.toFixed(2)}°{'\n'}
-        Word Count: {wordStats.count}{'\n'}
-        Word Speeds: {wordStats.speeds.map(s => s.toFixed(1)).join(', ')}{'\n'}
-        Current Input: {input}{'\n'}
-        Focused Word Position: {'\n'}
-        X: {focusedWordPosition?.x.toFixed(2) || 'N/A'}{'\n'}
-        Y: {focusedWordPosition?.y.toFixed(2) || 'N/A'}
+        Words: {wordStats.count}{'\n'}
+        Input: {input}
       </Text>
     </View>
   );

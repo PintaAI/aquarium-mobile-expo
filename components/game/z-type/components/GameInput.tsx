@@ -3,17 +3,21 @@ import { TextInput, View } from 'react-native';
 import { useGameStore } from '../store';
 
 export const GameInput = () => {
-  const { input, running, gameOver } = useGameStore((state) => ({
+  const { input, running, gameOver, setInput, triggerShot } = useGameStore((state) => ({
     input: state.input,
     running: state.running,
     gameOver: state.gameOver,
+    setInput: state.setInput,
+    triggerShot: state.triggerShot
   }));
-
-  const setInput = useGameStore((state) => state.setInput);
 
   // Input changes will be checked in real-time by game systems
   const handleInputChange = (text: string) => {
     if (!running || gameOver) return;
+    if (text.length > input.length) {
+      // Only trigger shot when adding characters (not on backspace)
+      triggerShot();
+    }
     setInput(text.toLowerCase());
   };
 

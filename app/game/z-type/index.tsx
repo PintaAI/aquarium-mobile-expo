@@ -8,6 +8,7 @@ import { useGameStore } from '@/components/game/z-type/store';
 import { GameInput } from '@/components/game/z-type/components/GameInput';
 import { WordRenderer } from '@/components/game/z-type/components/Word';
 import { PlayerRenderer } from '@/components/game/z-type/components/Player';
+import { LineRenderer } from '@/components/game/z-type/components/Line';
 import { HUD } from '@/components/game/z-type/components/HUD';
 import { DevLog } from '@/components/game/z-type/components/DevLog';
 import { GameOver } from '@/components/game/z-type/components/GameOver';
@@ -152,6 +153,10 @@ const ZTypeScreen = () => {
                 }
               }}
             />
+            <LineRenderer player={{ 
+              x: SCREEN.width / 2 - 13, 
+              y: useGameStore.getState().playerY-9 
+            }} />
             <GameInput />
             
           </>
