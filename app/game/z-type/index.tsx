@@ -1,109 +1,144 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
-import { useKeyboardHeight } from './hooks/useKeyboardHeight';
-import KeyboardSystem from './systems/keyboard';
-import MovementSystem from './systems/movement';
-import GameLogicSystem from './systems/gameLogic'; // Import the new system
+import React, { useEffect, useRef } from 'react';
+import { KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-native';
 import { GameEngine } from 'react-native-game-engine';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text } from '~/components/ui/text';
-import { GameInput } from './components/GameInput';
-import { createPlayer } from './entities/player';
-import { useGameStore } from './store/gameStore';
-import { GAME_CONSTANTS } from './utils/constants'; // Import constants for level calculation
+import { useKeyboard } from '@/components/game/z-type/hooks/useKeyboard';
+import { useGameStore } from '@/components/game/z-type/store';
+import { GameInput } from '@/components/game/z-type/components/GameInput';
+import { WordRenderer } from '@/components/game/z-type/components/Word';
+import { PlayerRenderer } from '@/components/game/z-type/components/Player';
+import { HUD } from '@/components/game/z-type/components/HUD';
+import { GameOver } from '@/components/game/z-type/components/GameOver';
+import { getRandomWords, GAME_CONSTANTS } from '@/components/game/z-type/constants';
+import { MovementSystem } from '@/components/game/z-type/systems';
+import { 
+  GameEngine as GameEngineType, 
+  GameEntities, 
+  Position,
+  PlayerEntity,
+  WordEntity 
+} from '@/components/game/z-type/types';
+import { Word } from '@/components/game/z-type/constants';
 
-export default function ZTypeGame() {
-  const { width, height } = useWindowDimensions();
-  const keyboardHeight = useKeyboardHeight();
-  const adjustedHeight = height - keyboardHeight;
-  
-  // Destructure new state variables
-  const { 
-    isGameOver, 
-    gameKey, 
-    words, 
-    setGameOver, 
-    resetGame, 
-    initializeWords,
-    score,
-    highScore,
-    currentLevel,
-    wordsCleared 
-  } = useGameStore();
+// Game constants
+const SCREEN = {
+  width: Dimensions.get('window').width,
+  height: Dimensions.get('window').height,
+  playerAreaHeight: 60, // Height of player entity + margin
+  wordPadding: 100, // Padding for word placement
+};
 
-  useEffect(() => {
-    initializeWords(width, height);
-  }, [width, height, gameKey]);
+// Entity factory functions
+const createPlayerEntity = (playerY: number): PlayerEntity => ({
+  type: 'player' as const,
+  position: { 
+    x: SCREEN.width / 2 - 12, 
+    y: playerY 
+  },
+  renderer: ({ position }: { position: Position }) => (
+    <PlayerRenderer position={position} />
+  ),
+});
 
-  const makeEntities = () => ({
-    player: {
-      ...createPlayer(width - 20, adjustedHeight - 215),
-      gameHeight: height,
-      keyboardHeight: keyboardHeight
-    },
-    ...Object.entries(words).reduce((acc, [id, word]) => ({
-      ...acc,
-      [`word${id}`]: word
-    }), {})
+const createWordEntity = (word: Word, index: number): WordEntity => {
+  const randomX = Math.random() * (SCREEN.width - SCREEN.wordPadding);
+  const randomY = -100 - (Math.random() * 300);
+  const randomSpeed = GAME_CONSTANTS.INITIAL_SPEED + 
+    (Math.random() * GAME_CONSTANTS.INITIAL_SPEED);
+
+  return {
+    type: 'word' as const,
+    wordData: word,
+    position: { x: randomX, y: randomY },
+    speed: randomSpeed,
+    focused: false,
+    renderer: ({ position, wordData, focused }: { 
+      position: Position; 
+      wordData: Word; 
+      focused: boolean 
+    }) => (
+      <WordRenderer 
+        wordData={wordData} 
+        position={position} 
+        focused={focused} 
+      />
+    ),
+  };
+};
+
+const createGameEntities = (words: Word[]): GameEntities => {
+  const entities: GameEntities = {
+    player: createPlayerEntity(useGameStore.getState().playerY)
+  };
+
+  words.forEach((word, index) => {
+    entities[`word${index + 1}` as keyof GameEntities] = createWordEntity(word, index);
   });
 
-  const entities = useMemo(() => makeEntities(), [words, width, height, adjustedHeight, keyboardHeight]);
+  return entities;
+};
+
+const ZTypeScreen = () => {
+  const { keyboardHeight, isKeyboardVisible } = useKeyboard();
+  const { setPlayerY, setRunning, gameOver } = useGameStore();
+  const gameEngineRef = useRef<GameEngineType>(null);
+
+  // Initialize game
+  useEffect(() => {
+    setRunning(true);
+  }, [setRunning]);
+
+  // Update player position when keyboard changes
+  useEffect(() => {
+    const newPlayerY = SCREEN.height - keyboardHeight - SCREEN.playerAreaHeight;
+    setPlayerY(newPlayerY);
+  }, [keyboardHeight, isKeyboardVisible, setPlayerY]);
+
+  // Initialize game entities
+  const initialEntities = createGameEntities(getRandomWords(1, 5));
+
+  // Handle game restart
+  const handleRestart = () => {
+    if (gameEngineRef.current?.swap) {
+      const resetEntities = createGameEntities(getRandomWords(1, 5));
+      gameEngineRef.current.swap(resetEntities);
+    }
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top','bottom']}>
-      <KeyboardAvoidingView 
+    <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 1 : 20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-      <View className="flex-1 border-2 border-foreground/20 m-2 rounded-lg">
-          <GameEngine
-            key={`${keyboardHeight}-${gameKey}-${Object.keys(words).length}`}
-            // Add GameLogicSystem to the systems array
-            systems={[KeyboardSystem, MovementSystem, GameLogicSystem]} 
-            running={!isGameOver}
-            entities={entities}
-            onEvent={(event: { type: string }) => {
-              if (event.type === 'game-over') {
-                setGameOver(true);
-              }
-            }}
-          >
-          {/* Status Display */}
-          {!isGameOver && (
-            <View className="absolute top-2 left-2 p-2 bg-background/70 rounded-lg z-10">
-              <Text className="text-foreground font-semibold">Score: {score}</Text>
-              <Text className="text-muted-foreground text-xs">High Score: {highScore}</Text>
-              <Text className="text-foreground font-semibold mt-1">Level: {currentLevel}</Text>
-              <Text className="text-muted-foreground text-xs">
-                Progress: {wordsCleared % GAME_CONSTANTS.LEVEL.WORDS_PER_LEVEL} / {GAME_CONSTANTS.LEVEL.WORDS_PER_LEVEL}
-              </Text>
-            </View>
-          )}
-          {/* Game Over / Dev Mode Overlay */}
-          <View className="absolute inset-0 items-center justify-center">
-            {isGameOver ? (
-              <View className="absolute inset-0 items-center justify-center bg-background/80 z-20">
-                <Text className="text-4xl text-destructive font-bold mb-4">Game Over!</Text>
-                <Text className="text-lg text-muted-foreground mb-8">Better luck next time!</Text>
-                <Text 
-                  className="text-primary bg-primary/20 px-4 py-2 rounded-lg active:opacity-70" 
-                  onPress={resetGame}
-                >
-                  Try Again
-                </Text>
-              </View>
-            ) : (
-              // Keep Dev Mode text if needed, or remove/comment out for cleaner look
-              <Text className="text-xs text-muted-foreground bg-destructive/10 px-1 py-0.5 rounded absolute bottom-2 right-2">
-                Dev {`(w:${Math.round(width)},h:${Math.round(height)},kh:${Math.round(keyboardHeight)},ah:${Math.round(adjustedHeight)})`} Lvl:{currentLevel} WC:{wordsCleared} SI:{useGameStore.getState().spawnInterval}
-              </Text>
-            )}
-          </View>
-        </GameEngine>
-      </View>
-      <GameInput />
+        {gameOver ? (
+          <GameOver onRestart={handleRestart} />
+        ) : (
+          <>
+            <HUD />
+            <GameEngine
+              ref={gameEngineRef}
+              style={styles.gameEngine}
+              entities={initialEntities}
+              systems={[MovementSystem]}
+              running={true}
+            />
+            <GameInput />
+          </>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  gameEngine: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+    position: 'relative',
+  },
+});
+
+export default ZTypeScreen;
