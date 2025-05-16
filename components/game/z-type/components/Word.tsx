@@ -29,11 +29,18 @@ export const WordRenderer: React.FC<WordRendererProps> = ({ wordData, position, 
             { translateX: position.x },
             { translateY: position.y }
           ],
+          ...(focused && {
+            shadowColor: '#22c55e',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.5,
+            shadowRadius: 8,
+            elevation: 5
+          })
         }
       ]}
       className={`px-3 py-1.5 ${focused 
-        ? 'bg-primary/20 border border-primary rounded-lg'
-        : 'bg-white/5 border border-transparent rounded-lg'}`}
+        ? 'bg-green-500/20 rounded-lg'
+        : 'bg-white/5 rounded-lg'}`}
     >
       <Text className="text-sm text-center text-primary font-bold mb-0.5">
         {wordData.word}
@@ -47,7 +54,7 @@ export const WordRenderer: React.FC<WordRendererProps> = ({ wordData, position, 
             return (
               <Text
                 key={index}
-                className={isTyped && isMatching && charMatches ? 'text-green-500 font-bold' : ''}
+                className={isTyped && isMatching && charMatches ? 'text-primary font-bold' : ''}
               >
                 {char}
               </Text>

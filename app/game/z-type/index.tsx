@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, Dimensions } from 'react-native';
 import { GameEngine } from 'react-native-game-engine';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,8 +34,9 @@ const SCREEN = {
 
 const ZTypeScreen = () => {
   const { keyboardHeight, isKeyboardVisible } = useKeyboard();
-  const { setPlayerY, setRunning, gameOver, showStartScreen, setLevel, resetGame, playerY } = useGameStore();
+  const { setPlayerY, setRunning, gameOver, showStartScreen, setLevel, resetGame, playerY, running } = useGameStore();
   const gameEngineRef = useRef<GameEngineType>(null);
+  const [entities, setEntities] = React.useState<GameEntities | null>(null);
   // Entity factory functions
   const createPlayerEntity = (): PlayerEntity => ({
     type: 'player' as const,
@@ -95,16 +96,21 @@ const ZTypeScreen = () => {
     return entities;
   };
 
-  // Handle game start
-  const handleStartGame = (level: number) => {
-    resetGame();
-    setLevel(level);
-    if (gameEngineRef.current?.swap) {
-      const entities = createGameEntities(getRandomWords(level, 5));
-      gameEngineRef.current.swap(entities);
-    }
-    setRunning(true);
-  };
+    // Handle game start
+    const handleStartGame = (level: number, words: Word[]) => {
+      resetGame();
+      setLevel(level);
+      setEntities(createGameEntities(words));
+      setRunning(true);
+    };
+
+    // Handle game restart
+    const [restartKey, setRestartKey] = useState(0);
+    const handleRestart = () => {
+      resetGame();               // clears score, gameOver, etc.
+      setRunning(true);          // mark the game as running again
+      setRestartKey(k => k + 1); // force-unmount & remount GameEngine
+    };
 
   // Update player position when keyboard changes
   useEffect(() => {
@@ -112,17 +118,15 @@ const ZTypeScreen = () => {
     setPlayerY(newPlayerY);
   }, [keyboardHeight, isKeyboardVisible, setPlayerY]);
 
-  // Initialize game entities using current level from store
-  const currentLevel = useGameStore(state => state.level);
-  const initialEntities = createGameEntities(getRandomWords(currentLevel, 6));
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      resetGame();
+      setRunning(false);
+    };
+  }, []);
 
-  // Handle game restart
-  const handleRestart = () => {
-    if (gameEngineRef.current?.swap) {
-      const resetEntities = createGameEntities(getRandomWords(currentLevel, 5));
-      gameEngineRef.current.swap(resetEntities);
-    }
-  };
+
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -136,25 +140,24 @@ const ZTypeScreen = () => {
             game={games.find(g => g.route === '/game/z-type')!} 
             onStartGame={handleStartGame}
           />
-        ) : gameOver ? (
-          <GameOver onRestart={handleRestart} />
         ) : (
           <>
-            <DevLog entities={initialEntities} />
+            <DevLog entities={entities || {}} />
             <HUD />
             <GameEngine
+              key={restartKey}
               ref={gameEngineRef}
               style={styles.gameEngine}
-              entities={initialEntities}
+              entities={entities || {}}
               systems={[MovementSystem]}
-              running={true}
+              running={running}
             />
             <LineRenderer player={{ 
               x: SCREEN.width / 2 - 12, 
               y: playerY - 9 
             }} />
             <GameInput />
-            
+            {gameOver && <GameOver onRestart={handleRestart} />}
           </>
         )}
       </KeyboardAvoidingView>

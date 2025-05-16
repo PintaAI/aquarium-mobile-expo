@@ -3,14 +3,17 @@ import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { wordList } from './constants';
+import { Play, X, ChevronRight, ArrowLeft } from 'lucide-react-native';
+import { iconWithClassName } from '../../lib/icons/iconWithClassName';
+import { wordList, getRandomWords, Word } from './constants';
 import { GameRoute } from '../../lib/game';
 import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+
+[Play, X, ChevronRight, ArrowLeft].forEach(iconWithClassName);
 
 interface StartScreenProps {
   game: GameRoute;
-  onStartGame: (level: number) => void;
+  onStartGame: (level: number, words: Word[]) => void;
 }
 
 export const StartScreen = ({ game, onStartGame }: StartScreenProps) => {
@@ -19,7 +22,13 @@ export const StartScreen = ({ game, onStartGame }: StartScreenProps) => {
   const router = useRouter();
 
   const handlePlay = () => {
-    onStartGame(selectedLevel);
+    const availableWords = wordList.filter(word => {
+      if (selectedLevel <= 2) return word.word.length <= 1;
+      if (selectedLevel <= 4) return word.word.length <= 2;
+      return true;
+    });
+    const randomWords = getRandomWords(selectedLevel, availableWords.length);
+    onStartGame(selectedLevel, randomWords);
   };
 
   const GameIcon = game.icon;
@@ -37,20 +46,25 @@ export const StartScreen = ({ game, onStartGame }: StartScreenProps) => {
               </View>
 
               {!showOptions ? (
-                <View className="w-full space-y-4">
-                  <Button className="w-full" onPress={() => setShowOptions(true)}>
+                <View className="w-full flex gap-y-4 max-w-[200px]">
+                  <Button 
+                    className="w-full flex-row items-center gap-x-2" 
+                    onPress={() => setShowOptions(true)}
+                  >
+                    <Play size={18} className="text-primary-foreground" />
                     <Text className="text-primary-foreground font-medium">Play</Text>
                   </Button>
                   <Button 
                     variant="secondary"
-                    className="w-full"
+                    className="w-full flex-row items-center gap-x-2"
                     onPress={() => router.push('/')}
                   >
+                    <X size={18} className="text-primary" />
                     <Text className="text-primary font-medium">Exit</Text>
                   </Button>
                 </View>
               ) : (
-                <View className="w-full space-y-4">
+                <View className="w-full flex gap-y-4">
                   <View className="mb-6">
                     <Text className="text-xl text-primary text-center mb-4">
                       Select Level
@@ -82,21 +96,30 @@ export const StartScreen = ({ game, onStartGame }: StartScreenProps) => {
                     <Text className="text-sm text-primary mb-2 text-center">
                       Level {selectedLevel} Words ({getWordCount(selectedLevel)} words)
                     </Text>
-                    <Text className="text-xs text-secondary text-center">
+                    <Text className="text-xs text-primary text-center">
                       {getWordLengthDesc(selectedLevel)}
                     </Text>
                   </View>
 
-                  <Button className="w-full" onPress={handlePlay}>
-                    <Text className="text-primary-foreground font-medium">Start</Text>
-                  </Button>
-                  <Button 
-                    variant="secondary" 
-                    className="w-full"
-                    onPress={() => setShowOptions(false)}
-                  >
-                    <Text className="text-primary font-medium">Back</Text>
-                  </Button>
+                  <View className="w-full items-center">
+                    <View className="w-full max-w-[200px]">
+                      <Button 
+                        className="w-full flex-row items-center gap-x-2" 
+                        onPress={handlePlay}
+                      >
+                        <ChevronRight size={18} className="text-primary-foreground" />
+                        <Text className="text-primary-foreground font-medium">Start</Text>
+                      </Button>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full mt-4 flex-row items-center gap-x-2"
+                        onPress={() => setShowOptions(false)}
+                      >
+                        <ArrowLeft size={18} className="text-primary" />
+                        <Text className="text-primary font-medium">Back</Text>
+                      </Button>
+                    </View>
+                  </View>
                 </View>
               )}
           </View>
@@ -107,13 +130,17 @@ export const StartScreen = ({ game, onStartGame }: StartScreenProps) => {
 };
 
 function getWordCount(level: number): number {
-  if (level <= 2) return wordList.filter(word => word.word.length <= 1).length;
-  if (level <= 4) return wordList.filter(word => word.word.length <= 2).length;
-  return wordList.length;
+  // Get all possible words for this level using the same filter as getRandomWords
+  const words = wordList.filter(word => {
+    if (level <= 2) return word.word.length <= 1;
+    if (level <= 4) return word.word.length <= 2;
+    return true;
+  });
+  return words.length;
 }
 
 function getWordLengthDesc(level: number): string {
-  if (level <= 2) return 'Single character words';
-  if (level <= 4) return 'Up to 2 characters';
-  return 'All word lengths';
+  if (level <= 2) return 'Easiest words';
+  if (level <= 4) return 'Easy to medium words';
+  return 'All difficulties';
 }

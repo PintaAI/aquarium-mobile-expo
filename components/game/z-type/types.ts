@@ -3,8 +3,8 @@ import { Word } from '../constants';
 import { GameEngine as RNGameEngine } from 'react-native-game-engine';
 
 export interface GameEngine extends RNGameEngine {
-  swap?: (entities: GameEntities) => void;
   entities?: GameEntities;
+  swap: (entities: GameEntities) => void;
 }
 
 
