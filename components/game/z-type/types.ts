@@ -1,5 +1,5 @@
 import React from 'react';
-import { Word } from './constants';
+import { Word } from '../constants';
 import { GameEngine as RNGameEngine } from 'react-native-game-engine';
 
 export interface GameEngine extends RNGameEngine {

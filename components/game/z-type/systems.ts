@@ -1,7 +1,7 @@
 import { GameEntities, GameEntity, Position, WordEntity } from './types';
 import { useGameStore } from './store';
 import { Dimensions } from 'react-native';
-import { GAME_CONSTANTS } from './constants'; // Import GAME_CONSTANTS
+import { GAME_CONSTANTS } from '../constants'; // Import GAME_CONSTANTS
 
 const { width } = Dimensions.get('window');
 

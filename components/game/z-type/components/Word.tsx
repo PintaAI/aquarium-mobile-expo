@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Word } from '../constants';
+import { Word } from '../../constants';
 import { useGameStore } from '../store';
 
 type WordRendererProps = {
@@ -31,30 +31,30 @@ export const WordRenderer: React.FC<WordRendererProps> = ({ wordData, position, 
           ],
         }
       ]}
-      className={`px-3 py-1 ${focused 
+      className={`px-3 py-1.5 ${focused 
         ? 'bg-primary/20 border border-primary rounded-lg'
-        : 'bg-white/10 border border-transparent rounded-lg'}`}
+        : 'bg-white/5 border border-transparent rounded-lg'}`}
     >
-      <Text className="text-sm text-center text-primary font-bold">{wordData.word}</Text>
-      <Text className="text-xs text-center">
-        {meaning.split('').map((char, index) => {
-          const isTyped = index < input.length;
-          const charMatches = isTyped && input[index].toLowerCase() === char.toLowerCase();
-          
-          return (
-            <Text
-              key={index}
-              className={`${
-                isTyped && isMatching && charMatches
-                  ? 'text-green-500 text-center font-bold'
-                  : 'text-muted-foreground text-center'
-              }`}
-            >
-              {char}
-            </Text>
-          );
-        })}
+      <Text className="text-sm text-center text-primary font-bold mb-0.5">
+        {wordData.word}
       </Text>
+      {focused && (
+        <Text className="text-xs text-center text-muted-foreground">
+          {meaning.split('').map((char, index) => {
+            const isTyped = index < input.length;
+            const charMatches = isTyped && input[index].toLowerCase() === char.toLowerCase();
+            
+            return (
+              <Text
+                key={index}
+                className={isTyped && isMatching && charMatches ? 'text-green-500 font-bold' : ''}
+              >
+                {char}
+              </Text>
+            );
+          })}
+        </Text>
+      )}
     </View>
   );
 };
