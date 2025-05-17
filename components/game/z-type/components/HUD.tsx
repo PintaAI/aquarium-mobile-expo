@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import { Trophy, Target, ArrowRight } from 'lucide-react-native';
 import { iconWithClassName } from '../../../../lib/icons/iconWithClassName';
@@ -14,6 +15,18 @@ iconWithClassName(ArrowRight);
 export const HUD = () => {
   const score = useGameStore((state) => state.score);
   const level = useGameStore((state) => state.level);
+  const animatedScore = useSharedValue(0);
+
+  useEffect(() => {
+    animatedScore.value = withSpring(score, {
+      damping: 10,
+      stiffness: 100,
+    });
+  }, [score]);
+
+  const animatedScoreStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(score !== animatedScore.value ? 1.2 : 1) }],
+  }));
 
   // Calculate progress towards the next level
   // Level increases every 10 points (assuming 1 point per word)
@@ -32,7 +45,9 @@ export const HUD = () => {
           </View>
           <View className="flex-row items-center gap-1">
             <Trophy className="text-primary" size={16} />
-            <Text className="text-primary text-lg font-bold">{score}</Text>
+            <Animated.Text style={animatedScoreStyle} className="text-primary text-lg font-bold">
+              {score}
+            </Animated.Text>
           </View>
         </View>
         <View className="mx-0">
