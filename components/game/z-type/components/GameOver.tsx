@@ -27,8 +27,6 @@ export const GameOver: React.FC<GameOverProps> = ({ onRestart }) => {
 
   const handleRestart = () => {
     resetGame();
-    // After resetGame, explicitly set gameOver to false and running to true
-    // since resetGame sets running to false and showStartScreen to true
     setGameOver(false);
     setRunning(true);
     onRestart?.();

@@ -44,7 +44,7 @@ export const WordRenderer: React.FC<WordRendererProps> = ({ wordData, position, 
       { translateY: position.y }
     ],
     shadowOpacity: focused ? interpolate(glow.value, [0, 1], [0.5, 1]) : 0,
-    borderWidth: focused ? interpolate(glow.value, [0, 1], [1, 2]) : 0,
+    borderWidth: focused ? interpolate(glow.value, [0, 1], [0, 1]) : 0,
     borderColor: focused ? `rgba(74, 222, 128, ${interpolate(glow.value, [0, 1], [0.3, 0.8])})` : 'transparent',
   }));
 
